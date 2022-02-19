@@ -1,10 +1,37 @@
+import os
+
 from flask import Flask, flash, redirect, render_template, session, url_for
+from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 
+basedir = os.path.abspath(os.path.dirname(__file__))
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "blahblahblah"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URL"]
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db = SQLAlchemy(app)
+
+
+class Role(db.Model):
+    __tablename__ = "roles"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True)
+
+    def __repr__(self):
+        return "<Role %s>" % self.name
+
+
+class User(db.Model):
+    __tablename__ = "users"
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, index=True)
+
+    def __repr__(self):
+        return "<User %s>" % self.username
 
 
 class NameForm(FlaskForm):
