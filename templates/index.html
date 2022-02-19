@@ -1,14 +1,10 @@
 <h1>Hello, {% if name %}{{ name }}{% else %}Stranger{% endif %}!</h1>
 
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <ul>
-    {% for message in messages %}
-      <li>{{ message }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
+{% if not known %}
+	<p>Pleased to meet you!</p>
+	{% else %}
+	<p>Happy to see you again!</p>
+{% endif %}
 
 <form method="POST">
 	{{ form.hidden_tag() }}

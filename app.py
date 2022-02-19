@@ -20,7 +20,7 @@ class Role(db.Model):
     __tablename__ = "roles"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
-    users = db.relationship("User", backref="role")
+    users = db.relationship("User", backref="role", lazy="dynamic")
 
     def __repr__(self):
         return "<Role %s>" % self.name
@@ -43,13 +43,30 @@ class NameForm(FlaskForm):
 
 def index():
     form = NameForm()
+    # If form has a name value, as it is required
     if form.validate_on_submit():
-        old_name = session.get("name")
-        if old_name is not None and old_name != form.name.data:
-            flash("You have changed your name")
+        # If User table has a username that matches the form data
+        user = User.query.filter_by(username=form.name.data).first()
+        if user is None:
+            # If not then create the user and add known to the flask session
+            user = User(username=form.name.data)
+            db.session.add(user)
+            db.session.commit()
+            session["known"] = False
+        else:
+            session["known"] = True
         session["name"] = form.name.data
+        # Reset th form data after submitting
+        form.name.data = ""
+        # Post/redirect/get pattern on refresh
         return redirect(url_for("index"))
-    return render_template("index.html", form=form, name=session.get("name"))
+    # If we access index with just a get request we render template with session vars
+    return render_template(
+        "index.html",
+        form=form,
+        name=session.get("name"),
+        known=session.get("known", False),
+    )
 
 
 def page_not_found(e):
@@ -65,3 +82,8 @@ app.add_url_rule("/", view_func=index, methods=["GET", "POST"])
 app.register_error_handler(404, page_not_found)
 
 app.register_error_handler(500, internal_server_error)
+
+# To set the imports for flask shell automatically on init
+@app.shell_context_processor
+def make_shell_context():
+    return dict(db=db, User=User, Role=Role)
