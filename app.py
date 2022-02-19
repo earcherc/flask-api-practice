@@ -17,11 +17,15 @@ db = SQLAlchemy(app)
 
 
 class Role(db.Model):
+    # Explicitly set the table name to follow good convention of plural table names
     __tablename__ = "roles"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
+    # Contains the back reference to the relationship so we can access role.users.all()
+    # lazy loaded so we can add filters if we query the relationship form this direction.
     users = db.relationship("User", backref="role", lazy="dynamic")
 
+    # Not necessary but good for debugging
     def __repr__(self):
         return "<Role %s>" % self.name
 
@@ -36,6 +40,7 @@ class User(db.Model):
         return "<User %s>" % self.username
 
 
+# Flask-WTF forms
 class NameForm(FlaskForm):
     name = StringField("What is your name?", validators=[DataRequired()])
     submit = SubmitField("Submit")
