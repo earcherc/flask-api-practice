@@ -45,3 +45,5 @@ venv
 .DS_Store
 
 .envrc
+
+.test
